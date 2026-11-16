@@ -35,7 +35,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-程序听在 8000 端口。要让 Caddy 申请证书并把域名指过来：
+基础镜像从 DaoCloud 的公开镜像拉取，避免在国内构建时直连 Docker Hub。程序听在 8000 端口。要让 Caddy 申请证书并把域名指过来：
 
 ```bash
 # .env 里的 DOMAIN 写成自己的域名，不要带 https://
