@@ -153,7 +153,7 @@
   }
 
   function sparkCard(spark, withActions) {
-    var card = el("li", "card spark" + (spark.aged ? " aged" : ""));
+    var card = el("li", "card entry spark" + (spark.aged ? " aged" : ""));
     card.appendChild(el("p", null, spark.text));
     card.appendChild(el("p", "meta", spark.meta));
     if (withActions) card.appendChild(sparkActions(spark.id));
@@ -164,9 +164,10 @@
     return el("p", "hint", text);
   }
 
-  function fillSelect(select, options, placeholder) {
+  function fillSelect(select, options, placeholder, preferFirst) {
     if (!select || document.activeElement === select) return;
     var current = select.value;
+    var touched = select.dataset.touched === "1";
     clear(select);
     select.appendChild(el("option", null, placeholder));
     select.lastChild.value = "";
@@ -175,7 +176,10 @@
       node.value = String(option.value);
       select.appendChild(node);
     });
-    select.value = options.some(function (option) { return String(option.value) === current; }) ? current : "";
+    var hasCurrent = options.some(function (option) { return String(option.value) === current; });
+    if (touched && (current === "" || hasCurrent)) select.value = current;
+    else if (preferFirst && options.length) select.value = String(options[0].value);
+    else select.value = hasCurrent ? current : "";
   }
 
   function renderBrand() {
@@ -252,6 +256,7 @@
       body.appendChild(el("strong", null, block.title));
       var notes = [];
       if (minutes(block.start) <= now && minutes(block.end) > now) notes.push("进行中");
+      if (block.weekly) notes.push("每周");
       if (block.todo_title) notes.push("挂着「" + block.todo_title + "」");
       if (notes.length) body.appendChild(el("p", "meta", notes.join(" · ")));
       row.appendChild(body);
@@ -328,11 +333,22 @@
   }
 
   function renderTodos() {
+    var goalSelect = document.getElementById("todo-goal");
     fillSelect(
-      document.getElementById("todo-goal"),
+      goalSelect,
       state.goals.map(function (goal) { return { value: goal.id, label: goal.title }; }),
-      "先不挂"
+      "先不挂",
+      true
     );
+    var hint = document.getElementById("goal-hint");
+    var jump = document.getElementById("goal-jump");
+    if (!state.goals.length) {
+      hint.textContent = "本周还没有要交的结果，所以只能先不挂。写好之后，新待办会默认挂上第一条。";
+      jump.hidden = false;
+    } else {
+      hint.textContent = "默认挂到本周第一条结果。想单独放着，再改成先不挂。";
+      jump.hidden = true;
+    }
     var list = document.getElementById("todo-list");
     clear(list);
     var rows = state.todos.filter(function (todo) {
@@ -340,7 +356,7 @@
     });
     if (!rows.length) list.appendChild(el("li", "hint", "这一栏是空的。"));
     rows.forEach(function (todo) {
-      var item = el("li", "card");
+      var item = el("li", "card entry");
       item.hidden = false;
       item.appendChild(el("strong", null, todo.title));
       item.appendChild(metaLine(todo.meta, todo.flags));
@@ -360,21 +376,21 @@
       return sparkCard(spark, spark.aged);
     }, "没有先放着的灵感。");
     fillList("spark-write", state.writing, function (spark) {
-      var card = el("li", "card");
+      var card = el("li", "card entry");
       card.appendChild(el("strong", null, spark.title));
       card.appendChild(el("p", "meta", spark.meta));
       card.appendChild(button("btn btn-ghost", "继续写", { "data-open": "edit-write", "data-spark": spark.id }));
       return card;
     }, "还没有开写的文章。");
     fillList("spark-try", state.practices, function (spark) {
-      var card = el("li", "card");
+      var card = el("li", "card entry");
       card.appendChild(el("strong", null, spark.title));
       card.appendChild(el("p", "meta", spark.meta));
       card.appendChild(button("btn btn-ghost", "记下结果", { "data-open": "edit-try", "data-spark": spark.id }));
       return card;
     }, "还没有正在做的实践。");
     fillList("spark-settled", state.settled, function (spark) {
-      var card = el("li", "card");
+      var card = el("li", "card entry");
       card.appendChild(el("strong", null, spark.title));
       card.appendChild(metaLine([], [{ tone: "ok", text: spark.outcome === "article" ? "已成文" : "已实践" }]));
       return card;
@@ -415,8 +431,14 @@
       day.blocks.forEach(function (block) {
         var item = el("li");
         item.appendChild(el("time", null, block.start + "–" + block.end));
-        item.appendChild(el("span", null, block.title));
-        item.appendChild(button("btn btn-quiet", "去掉", { "data-delete-block": block.id }));
+        var line = el("div", "week-line");
+        line.appendChild(el("span", null, block.title));
+        if (block.weekly) line.appendChild(el("span", "flag", "每周"));
+        var remove = block.weekly
+          ? button("btn btn-quiet", "取消每周", { "data-delete-routine": block.id, "aria-label": "取消每周的「" + block.title + "」" })
+          : button("btn btn-quiet", "去掉", { "data-delete-block": block.id, "aria-label": "去掉「" + block.title + "」" });
+        line.appendChild(remove);
+        item.appendChild(line);
         list.appendChild(item);
       });
       card.appendChild(list);
@@ -435,10 +457,13 @@
   function renderDaily() {
     var done = document.getElementById("daily-done");
     clear(done);
-    if (!state.daily.done.length) done.appendChild(el("li", null, "今天还没有勾掉的待办。"));
+    if (!state.daily.done.length) done.appendChild(el("li", "plain-empty", "今天还没有勾掉的待办。"));
     state.daily.done.forEach(function (item) {
       var line = item.title + (item.goal_title ? "，推进了「" + item.goal_title + "」" : "");
-      done.appendChild(el("li", null, line));
+      var row = el("li", "done-item");
+      row.appendChild(el("span", "flag flag-ok", "已完成"));
+      row.appendChild(el("span", null, line));
+      done.appendChild(row);
     });
     if (!kept("daily-open-step")) renderOpen();
     if (!kept("daily-form-step")) {
@@ -466,8 +491,11 @@
       return;
     }
     state.daily.open.forEach(function (todo) {
-      var card = el("div", "card");
+      var card = el("div", "card open-card");
       card.setAttribute("data-todo", todo.id);
+      var status = el("p", "meta");
+      status.appendChild(el("span", "flag flag-warn", "未完成"));
+      card.appendChild(status);
       card.appendChild(el("strong", null, todo.title));
       card.appendChild(metaLine(todo.meta, todo.flags));
       var stuck = todo.postpone_count >= state.rules.postpone_limit;
@@ -493,7 +521,7 @@
   }
 
   function renderWeekly() {
-    fillPlain("weekly-done", state.weekly.done, "这周还没有完成的记录。");
+    fillPlain("weekly-done", state.weekly.done, "这周还没有完成的记录。", true);
     fillPlain("weekly-gaps", state.weekly.gaps, "本周还没有写下要交出去的结果。");
     fillPlain("weekly-blockers", state.weekly.blockers, "日复盘里还没有写下卡点。");
     var aged = document.getElementById("weekly-aged");
@@ -520,14 +548,23 @@
     }
   }
 
-  function fillPlain(id, lines, empty) {
+  function fillPlain(id, lines, empty, marked) {
     var host = document.getElementById(id);
     clear(host);
     if (!lines.length) {
-      host.appendChild(el("li", null, empty));
+      host.appendChild(el("li", "plain-empty", empty));
       return;
     }
-    lines.forEach(function (line) { host.appendChild(el("li", null, line)); });
+    lines.forEach(function (line) {
+      if (!marked) {
+        host.appendChild(el("li", "plain-line", line));
+        return;
+      }
+      var row = el("li", "done-item");
+      row.appendChild(el("span", "flag flag-ok", "已完成"));
+      row.appendChild(el("span", null, line));
+      host.appendChild(row);
+    });
   }
 
   function reportText() {
@@ -696,10 +733,12 @@
       if (existing) openPiece(open.getAttribute("data-open"), existing);
       return;
     }
-    var remove = event.target.closest("[data-delete-block]");
+    var remove = event.target.closest("[data-delete-block], [data-delete-routine]");
     if (remove) {
-      send("/api/blocks/" + remove.getAttribute("data-delete-block"), "DELETE").then(function (ok) {
-        if (ok) toast("这块时间去掉了。");
+      var routine = remove.hasAttribute("data-delete-routine");
+      var id = routine ? remove.getAttribute("data-delete-routine") : remove.getAttribute("data-delete-block");
+      send((routine ? "/api/routines/" : "/api/blocks/") + id, "DELETE").then(function (ok) {
+        if (ok) toast(routine ? "这个每周安排去掉了。" : "这块时间去掉了。");
       });
     }
   });
@@ -753,8 +792,13 @@
         return;
       }
       event.target.reset();
+      delete document.getElementById("todo-goal").dataset.touched;
       toast("已加进待办清单。");
     });
+  });
+
+  document.getElementById("todo-goal").addEventListener("change", function (event) {
+    event.target.dataset.touched = "1";
   });
 
   document.getElementById("goals").addEventListener("submit", function (event) {
@@ -785,18 +829,34 @@
     event.preventDefault();
     var data = new FormData(event.target);
     var day = currentDay();
+    var weekly = data.get("weekly") === "on";
     send("/api/blocks", "POST", {
       day: day,
       start: data.get("start"),
       end: data.get("end"),
       title: data.get("title"),
-      todo_id: data.get("todo") ? Number(data.get("todo")) : null,
+      todo_id: weekly || !data.get("todo") ? null : Number(data.get("todo")),
+      repeat: weekly,
     }).then(function (ok) {
       if (!ok) return;
       event.target.reset();
+      var todoSelect = document.getElementById("block-todo");
+      var weeklyHint = document.getElementById("block-weekly-hint");
+      todoSelect.disabled = false;
+      weeklyHint.textContent = "只加这一周。勾上之后，下周同一天还会出现。";
       var chosen = state.days.filter(function (item) { return item.date === day; })[0];
-      toast("已加进" + (chosen ? chosen.weekday : "这一天") + "。");
+      var name = chosen ? chosen.weekday : "这一天";
+      toast(weekly ? "以后每周" + name + "的这个时间都会有。" : "已加进" + name + "。");
     });
+  });
+
+  document.getElementById("block-weekly").addEventListener("change", function () {
+    var todoSelect = document.getElementById("block-todo");
+    var weeklyHint = document.getElementById("block-weekly-hint");
+    todoSelect.disabled = this.checked;
+    weeklyHint.textContent = this.checked
+      ? "每周都会有这块时间。它不挂某一条待办。"
+      : "只加这一周。勾上之后，下周同一天还会出现。";
   });
 
   document.getElementById("daily-form").addEventListener("submit", function (event) {

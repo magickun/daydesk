@@ -214,6 +214,14 @@ def _migrate(conn: sqlite3.Connection) -> None:
           todo_id INTEGER,
           created_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS routines (
+          id INTEGER PRIMARY KEY,
+          weekday INTEGER NOT NULL,
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          title TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS daily_reviews (
           id INTEGER PRIMARY KEY,
           day TEXT NOT NULL UNIQUE,
@@ -538,7 +546,14 @@ def update_spark(spark_id: int, fields: dict) -> dict:
     return board()
 
 
-def add_block(day: str, start: str, end: str, title: str, todo_id: int | None) -> dict:
+def add_block(
+    day: str,
+    start: str,
+    end: str,
+    title: str,
+    todo_id: int | None,
+    repeat: bool = False,
+) -> dict:
     day_value = parse_date(day, "日期")
     start_value = parse_time(start)
     end_value = parse_time(end)
@@ -550,6 +565,15 @@ def add_block(day: str, start: str, end: str, title: str, todo_id: int | None) -
         raise DeskError("只能排这一周的时间")
 
     def op(conn):
+        if repeat:
+            conn.execute(
+                """
+                INSERT INTO routines (weekday, start_time, end_time, title, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (day_value.weekday(), start_value, end_value, title, stamp()),
+            )
+            return
         if todo_id is not None:
             todo = conn.execute(
                 "SELECT id FROM todos WHERE id = ? AND status IN ('open', 'waiting')",
@@ -572,6 +596,14 @@ def add_block(day: str, start: str, end: str, title: str, todo_id: int | None) -
 def delete_block(block_id: int) -> dict:
     def op(conn):
         conn.execute("DELETE FROM blocks WHERE id = ?", (block_id,))
+
+    write(op)
+    return board()
+
+
+def delete_routine(routine_id: int) -> dict:
+    def op(conn):
+        conn.execute("DELETE FROM routines WHERE id = ?", (routine_id,))
 
     write(op)
     return board()
@@ -835,6 +867,9 @@ def board() -> dict:
             "SELECT * FROM blocks WHERE day >= ? AND day <= ? ORDER BY day, start_time, id",
             (start.isoformat(), end.isoformat()),
         ).fetchall()
+        routines = conn.execute(
+            "SELECT * FROM routines ORDER BY weekday, start_time, id"
+        ).fetchall()
         reviews = conn.execute(
             "SELECT * FROM daily_reviews WHERE day >= ? AND day <= ?",
             (start.isoformat(), end.isoformat()),
@@ -844,9 +879,9 @@ def board() -> dict:
             ((anchor - timedelta(days=1)).isoformat(),),
         ).fetchone()
         saved = conn.execute("SELECT * FROM daily_reviews WHERE day = ?", (anchor.isoformat(),)).fetchone()
-        return profile, all_goals, goals, next_goals, todos, sparks, blocks, reviews, yesterday, saved
+        return profile, all_goals, goals, next_goals, todos, sparks, blocks, routines, reviews, yesterday, saved
 
-    profile, all_goals, goals, next_goals, todos, sparks, blocks, reviews, yesterday, saved = read(op)
+    profile, all_goals, goals, next_goals, todos, sparks, blocks, routines, reviews, yesterday, saved = read(op)
     goal_titles = {row["id"]: row["title"] for row in all_goals}
     visible = []
     for todo in todos:
@@ -957,8 +992,26 @@ def board() -> dict:
                 "end": row["end_time"],
                 "title": row["title"],
                 "todo_title": block_titles.get(row["todo_id"], ""),
+                "weekly": False,
             }
         )
+    for row in routines:
+        for offset in range(7):
+            day = start + timedelta(days=offset)
+            if day.weekday() != row["weekday"]:
+                continue
+            day_blocks[day.isoformat()].append(
+                {
+                    "id": row["id"],
+                    "start": row["start_time"],
+                    "end": row["end_time"],
+                    "title": row["title"],
+                    "todo_title": "",
+                    "weekly": True,
+                }
+            )
+    for items in day_blocks.values():
+        items.sort(key=lambda item: (item["start"], 0 if item["weekly"] else 1, item["id"]))
     days = []
     for offset in range(7):
         day = start + timedelta(days=offset)

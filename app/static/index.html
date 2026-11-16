@@ -114,9 +114,12 @@
           <label class="field" style="grid-column:1/-1">标题
             <input name="title" type="text" required maxlength="120" placeholder="例如：把周报发给项目组">
           </label>
-          <label class="field">挂到本周目标
+          <div class="field" style="grid-column:1/-1">
+            <label for="todo-goal">挂到本周目标</label>
             <select name="goal" id="todo-goal"></select>
-          </label>
+            <p class="hint" id="goal-hint"></p>
+            <button class="btn btn-ghost" type="button" id="goal-jump" data-go="today" hidden>去写下本周三个结果</button>
+          </div>
           <label class="field">截止日期
             <input name="due" type="date">
           </label>
@@ -144,26 +147,26 @@
             <p class="draft-note">一句进来之后，只有四条路：变成待办、写成文章、做一次，或先放着。</p>
           </div>
         </header>
-        <div class="stack">
-          <section>
+        <div class="lanes">
+          <section class="lane lane-wide">
             <h2>收集箱</h2>
             <p class="hint" id="inbox-hint">和首页是同一条清单。超过 3 天会在日复盘里再问你。</p>
             <ul class="stack" id="spark-inbox"></ul>
           </section>
-          <section>
+          <section class="lane">
             <h2>培育</h2>
             <p class="hint" id="hold-hint">先放着。超过 14 天，周五必须再选一次。</p>
             <ul class="stack" id="spark-hold"></ul>
           </section>
-          <section>
+          <section class="lane">
             <h2>写作中</h2>
             <ul class="stack" id="spark-write"></ul>
           </section>
-          <section>
+          <section class="lane">
             <h2>实践中</h2>
             <ul class="stack" id="spark-try"></ul>
           </section>
-          <section>
+          <section class="lane">
             <h2>本周已落成</h2>
             <ul class="stack" id="spark-settled"></ul>
           </section>
@@ -175,7 +178,7 @@
           <div>
             <p class="kicker" id="schedule-kicker">本周</p>
             <h1>日程</h1>
-            <p class="draft-note">按一周看每天的大概安排。点选一天，再往下加一块时间。</p>
+            <p class="draft-note">点选一天再加一块时间。勾上每周，这个时段会留在以后的每一周。</p>
           </div>
         </header>
         <div class="week" id="week" role="list"></div>
@@ -192,6 +195,10 @@
           <label class="field" style="grid-column:1/-1">挂一条待办
             <select name="todo" id="block-todo"></select>
           </label>
+          <label class="check" style="grid-column:1/-1">
+            <input name="weekly" id="block-weekly" type="checkbox"> 以后每周的这一天都排上
+          </label>
+          <p class="hint" id="block-weekly-hint" style="grid-column:1/-1">只加这一周。勾上之后，下周同一天还会出现。</p>
           <div><button class="btn btn-primary" type="submit" id="block-submit">加到这一天</button></div>
         </form>
       </section>
@@ -206,14 +213,14 @@
           <button class="btn btn-ghost" type="button" data-go="weekly">去看周复盘</button>
         </header>
         <ol class="steps">
-          <li>
+          <li class="step-done">
             <span class="step-no">1</span>
             <div>
               <h2>今天完成的</h2>
               <ul class="prefill" id="daily-done"></ul>
             </div>
           </li>
-          <li id="daily-open-step" data-keep>
+          <li class="step-open" id="daily-open-step" data-keep>
             <span class="step-no">2</span>
             <div>
               <h2>没做完的，怎么处理</h2>
@@ -261,7 +268,7 @@
           <button class="btn btn-ghost" type="button" data-go="daily">回到日复盘</button>
         </header>
         <ol class="steps">
-          <li>
+          <li class="step-done">
             <span class="step-no">1</span>
             <div>
               <h2>本周完成</h2>

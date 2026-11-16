@@ -123,9 +123,34 @@ def test_schedule_block_lands_on_the_chosen_day(client):
     assert saved.status_code == 200
     today_column = next(day for day in saved.json()["days"] if day["is_today"])
     assert today_column["blocks"][0]["title"] == "写周报"
+    assert today_column["blocks"][0]["weekly"] is False
     removed = client.delete(f"/api/blocks/{today_column['blocks'][0]['id']}")
     column = next(day for day in removed.json()["days"] if day["is_today"])
     assert column["blocks"] == []
+
+
+def test_weekly_routine_repeats_on_that_weekday(client):
+    today = client.get("/api/board").json()["clock"]["today"]
+    saved = client.post(
+        "/api/blocks",
+        json={"day": today, "start": "09:00", "end": "09:30", "title": "晨间整理", "repeat": True},
+    )
+    assert saved.status_code == 200
+    hits = [
+        day
+        for day in saved.json()["days"]
+        if any(block["title"] == "晨间整理" for block in day["blocks"])
+    ]
+    assert len(hits) == 1
+    assert hits[0]["is_today"]
+    block = next(item for item in hits[0]["blocks"] if item["title"] == "晨间整理")
+    assert block["weekly"] is True
+    missed = client.delete(f"/api/blocks/{block['id']}")
+    still = next(day for day in missed.json()["days"] if day["is_today"])
+    assert any(item["title"] == "晨间整理" and item["weekly"] for item in still["blocks"])
+    removed = client.delete(f"/api/routines/{block['id']}")
+    column = next(day for day in removed.json()["days"] if day["is_today"])
+    assert all(item["title"] != "晨间整理" for item in column["blocks"])
 
 
 def test_token_gates_the_api(tmp_path, monkeypatch):

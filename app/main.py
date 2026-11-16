@@ -96,6 +96,7 @@ class BlockIn(BaseModel):
     end: str
     title: str
     todo_id: int | None = None
+    repeat: bool = False
 
 
 class DispositionIn(BaseModel):
@@ -183,12 +184,17 @@ def patch_spark(spark_id: int, body: SparkPatch):
 
 @app.post("/api/blocks")
 def post_block(body: BlockIn):
-    return _call(store.add_block, body.day, body.start, body.end, body.title, body.todo_id)
+    return _call(store.add_block, body.day, body.start, body.end, body.title, body.todo_id, body.repeat)
 
 
 @app.delete("/api/blocks/{block_id}")
 def remove_block(block_id: int):
     return _call(store.delete_block, block_id)
+
+
+@app.delete("/api/routines/{routine_id}")
+def remove_routine(routine_id: int):
+    return _call(store.delete_routine, routine_id)
 
 
 @app.post("/api/reviews/daily")
