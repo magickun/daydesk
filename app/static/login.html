@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>进入工作台</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <main class="main">
+    <header class="day-head">
+      <div>
+        <p class="kicker">Daydesk</p>
+        <h1>进入工作台</h1>
+        <p class="draft-note">这是这台服务器的口令，不是账号。</p>
+      </div>
+    </header>
+    <form class="card form-grid" id="login-form">
+      <label class="field">口令
+        <input name="token" type="password" required autocomplete="current-password">
+      </label>
+      <button class="btn btn-primary" type="submit">进入</button>
+      <p class="hint" id="login-error" hidden>口令不对</p>
+    </form>
+  </main>
+  <script>
+    document.getElementById("login-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      var token = new FormData(event.target).get("token");
+      fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token })
+      }).then(function (res) {
+        if (res.status === 204) {
+          window.location.href = "/";
+          return;
+        }
+        document.getElementById("login-error").hidden = false;
+      });
+    });
+  </script>
+</body>
+</html>

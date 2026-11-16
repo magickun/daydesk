@@ -1,0 +1,3 @@
+{$DOMAIN} {
+	reverse_proxy daydesk:8000
+}

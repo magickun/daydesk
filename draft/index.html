@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daydesk</title>
+  <script>
+    try {
+      var savedTheme = localStorage.getItem("daydesk-theme");
+      if (savedTheme === "stone" || savedTheme === "ink" || savedTheme === "paper") {
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      }
+    } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="draft.css">
+</head>
+<body>
+  <a class="skip" href="#main">跳到内容</a>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="brand-mark" id="site-name">Daydesk</p>
+        <p class="brand-sub" id="site-note" hidden></p>
+      </div>
+      <ul class="nav-list">
+        <li><button class="nav-btn" type="button" data-go="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>今天</button></li>
+        <li><button class="nav-btn" type="button" data-go="todos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>待办</button></li>
+        <li><button class="nav-btn" type="button" data-go="sparks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3 11c.5.4.8 1 .8 1.6V17h4.4v-1.4c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3z"/></svg>灵感</button></li>
+        <li><button class="nav-btn" type="button" data-go="schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>日程</button></li>
+        <li><button class="nav-btn" type="button" data-go="daily"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v16l-7-3-7 3V4a1 1 0 0 1 1-1z"/></svg>复盘</button></li>
+        <li class="nav-settings"><button class="nav-btn" type="button" data-go="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>设置</button></li>
+      </ul>
+      <p class="sidebar-foot">草稿 · 示例数据</p>
+    </aside>
+
+    <main class="main" id="main">
+      <section class="screen is-on" id="today" data-screen="today">
+        <header class="day-head">
+          <div>
+            <p class="kicker">第 47 周 · 星期一</p>
+            <h1>11月16日</h1>
+            <p class="draft-note">先看这三件事，再看时间、本周要交的和收集箱。</p>
+          </div>
+        </header>
+
+        <form class="capture" id="capture-form">
+          <label for="capture">记下一句灵感</label>
+          <input id="capture" name="spark" type="text" maxlength="140" placeholder="记下一句，回车放进收集箱" autocomplete="off">
+          <button class="btn btn-primary" type="submit">收下</button>
+        </form>
+
+        <section class="section" aria-labelledby="top3-title">
+              <div class="section-head">
+                <h2 id="top3-title">现在就做这三件</h2>
+                <p>逾期和高优先级在前</p>
+              </div>
+              <div class="stack" id="top3">
+                <article class="card task">
+                  <div class="task-no">01</div>
+                  <div>
+                    <h3>整理项目周报并提交</h3>
+                    <p class="meta">本周目标 · 阶段文档交出去 · 今天 18:00</p>
+                  </div>
+                  <div class="task-actions">
+                    <button class="btn btn-quiet done-btn" type="button">完成</button>
+                  </div>
+                </article>
+                <article class="card task">
+                  <div class="task-no">02</div>
+                  <div>
+                    <h3>回复客户关于进度的邮件</h3>
+                    <p class="meta">今天 11:00 · 普通</p>
+                  </div>
+                  <div class="task-actions">
+                    <button class="btn btn-quiet done-btn" type="button">完成</button>
+                  </div>
+                </article>
+                <article class="card task">
+                  <div class="task-no">03</div>
+                  <div>
+                    <h3>写下明天直播的提纲</h3>
+                    <p class="meta">从灵感转来 · 本周目标 · 直播流程跑通一次</p>
+                  </div>
+                  <div class="task-actions">
+                    <button class="btn btn-quiet done-btn" type="button">完成</button>
+                  </div>
+                </article>
+              </div>
+        </section>
+
+            <section class="section" aria-labelledby="risk-title">
+              <div class="section-head">
+                <h2 id="risk-title">要看一眼</h2>
+                <p>逾期，或等待别人超过 3 天</p>
+              </div>
+              <div class="stack">
+                <article class="card task">
+                  <div class="task-no">!</div>
+                  <div>
+                    <h3>准备会议材料</h3>
+                    <p class="meta"><span class="flag flag-danger">逾期 1 天</span> <span class="flag flag-warn">已顺延 2 次</span></p>
+                  </div>
+                  <div class="row-actions">
+                    <button class="btn btn-quiet postpone" type="button">放到明天</button>
+                    <button class="btn btn-quiet done-btn" type="button">完成</button>
+                  </div>
+                </article>
+                <article class="card task">
+                  <div class="task-no">!</div>
+                  <div>
+                    <h3>整理资料库目录</h3>
+                    <p class="meta"><span class="flag flag-danger">已顺延 5 次</span> 只能做掉或删掉</p>
+                  </div>
+                  <div class="row-actions">
+                    <button class="btn btn-primary done-btn" type="button">做掉</button>
+                    <button class="btn btn-danger" type="button" data-drop>删掉</button>
+                  </div>
+                </article>
+                <article class="card task">
+                  <div class="task-no">…</div>
+                  <div>
+                    <h3>等合同对方确认范围</h3>
+                    <p class="meta"><span class="flag flag-warn">等待别人 4 天</span></p>
+                  </div>
+                  <div class="row-actions">
+                    <button class="btn btn-quiet" type="button" data-toast="先保持等待。满 3 天会一直留在这里。">再等等</button>
+                    <button class="btn btn-quiet done-btn" type="button">完成</button>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+        <div class="board">
+          <section class="panel" aria-labelledby="sched-title">
+            <div class="section-head">
+              <h2 id="sched-title">今天的时间</h2>
+              <button class="btn btn-ghost" type="button" data-go="schedule">看本周</button>
+            </div>
+            <div class="time-list">
+              <div class="time-row"><time>08:30–09:00</time><strong>看三件事</strong></div>
+              <p class="now-line">现在 09:48</p>
+              <div class="time-row"><time>09:00–10:00</time><div><strong>团队晨会</strong><p class="meta">进行中</p></div></div>
+              <div class="time-row"><time>10:00–11:30</time><div><strong>写周报</strong><p class="meta">挂着待办</p></div></div>
+              <div class="time-row"><time>14:00–15:30</time><strong>需求讨论</strong></div>
+              <div class="time-row"><time>19:30–20:00</time><div><strong>日复盘</strong><p class="meta">约 5 分钟</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="goals-title">
+            <div class="section-head">
+              <h2 id="goals-title">本周要交出去的</h2>
+              <p>三个结果</p>
+            </div>
+            <div class="stack">
+              <article class="goal">
+                <div class="goal-top"><strong>阶段文档交出去</strong><span>60%</span></div>
+                <div class="bar" role="img" aria-label="阶段文档交出去，完成 60%"><span style="width:60%"></span></div>
+                <p class="meta">还剩 2 件待办</p>
+              </article>
+              <article class="goal">
+                <div class="goal-top"><strong>直播流程跑通一次</strong><span>30%</span></div>
+                <div class="bar" role="img" aria-label="直播流程跑通一次，完成 30%"><span style="width:30%"></span></div>
+                <p class="meta">下一步是今天第 3 件</p>
+              </article>
+              <article class="goal">
+                <div class="goal-top"><strong>读完一章并实践</strong><span>0%</span></div>
+                <div class="bar" role="img" aria-label="读完一章并实践，完成 0%"><span style="width:0%"></span></div>
+                <p class="meta">还没有挂上待办</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="inbox-title">
+            <div class="section-head">
+              <h2 id="inbox-title">收集箱</h2>
+              <p id="inbox-count">2 条未分流，1 条超过 3 天</p>
+            </div>
+            <ul class="stack" id="inbox">
+              <li class="spark aged">
+                <p>周报里要有一个数字</p>
+                <p class="meta">11月13日 · 已放 3 天</p>
+                <div class="spark-actions">
+                  <button class="btn btn-quiet" type="button" data-act="todo">转待办</button>
+                  <button class="btn btn-quiet" type="button" data-act="write">写成文章</button>
+                  <button class="btn btn-quiet" type="button" data-act="try">做一次</button>
+                  <button class="btn btn-quiet" type="button" data-act="hold">先放着</button>
+                </div>
+              </li>
+              <li class="spark">
+                <p>顺延五次必须取舍</p>
+                <p class="meta">今天 08:12</p>
+                <div class="spark-actions">
+                  <button class="btn btn-quiet" type="button" data-act="todo">转待办</button>
+                  <button class="btn btn-quiet" type="button" data-act="write">写成文章</button>
+                  <button class="btn btn-quiet" type="button" data-act="try">做一次</button>
+                  <button class="btn btn-quiet" type="button" data-act="hold">先放着</button>
+                </div>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" id="todos" data-screen="todos" hidden>
+        <header class="day-head">
+          <div>
+            <p class="kicker">承诺</p>
+            <h1>待办</h1>
+            <p class="draft-note">先看清单。要加一条时，再打开下面的表单。</p>
+          </div>
+        </header>
+        <div class="filters" role="group" aria-label="筛选待办">
+          <button class="btn btn-quiet" type="button" aria-pressed="true" data-filter="all">全部</button>
+          <button class="btn btn-quiet" type="button" aria-pressed="false" data-filter="today">今天</button>
+          <button class="btn btn-quiet" type="button" aria-pressed="false" data-filter="late">逾期</button>
+          <button class="btn btn-quiet" type="button" aria-pressed="false" data-filter="wait">等待别人</button>
+          <button class="btn btn-quiet" type="button" aria-pressed="false" data-filter="done">已完成</button>
+        </div>
+        <ul class="stack" id="todo-list" style="list-style:none;margin:0;padding:0">
+          <li class="card" data-kind="today"><strong>整理项目周报并提交</strong><p class="meta">今天 18:00 · 阶段文档交出去 · <span class="flag">高</span></p></li>
+          <li class="card" data-kind="today"><strong>回复客户关于进度的邮件</strong><p class="meta">今天 11:00</p></li>
+          <li class="card" data-kind="late"><strong>准备会议材料</strong><p class="meta"><span class="flag flag-danger">逾期</span> 顺延 2 次</p></li>
+          <li class="card" data-kind="wait"><strong>等合同对方确认范围</strong><p class="meta"><span class="flag flag-warn">等待别人</span> 已等 4 天</p></li>
+          <li class="card" data-kind="done"><strong>发出上周会议纪要</strong><p class="meta"><span class="flag flag-ok">已完成</span> 今天 09:10</p></li>
+        </ul>
+        <div class="add-bar">
+          <button class="btn btn-primary" type="button" id="add-todo" aria-expanded="false" aria-controls="todo-form">新增待办</button>
+        </div>
+        <form class="card form-grid cols-2" id="todo-form" hidden>
+          <label class="field" style="grid-column:1/-1">标题<span class="req"></span>
+            <input name="title" type="text" required placeholder="例如：把周报发给项目组">
+          </label>
+          <label class="field">挂到本周目标
+            <select name="goal">
+              <option value="">先不挂</option>
+              <option>阶段文档交出去</option>
+              <option>直播流程跑通一次</option>
+              <option>读完一章并留下一次实践</option>
+            </select>
+          </label>
+          <label class="field">截止日期
+            <input name="due" type="date" value="2026-11-16">
+          </label>
+          <div class="row-actions">
+            <button class="btn btn-primary" type="submit">加进清单</button>
+            <button class="btn btn-quiet" type="button" id="cancel-todo">取消</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="screen" id="sparks" data-screen="sparks" hidden>
+        <header class="day-head">
+          <div>
+            <p class="kicker">先抓住，再决定</p>
+            <h1>灵感</h1>
+            <p class="draft-note">一句进来之后，只有四条路：变成待办、写成文章、做一次，或先放着。</p>
+          </div>
+        </header>
+        <div class="stack">
+          <section>
+            <h2>收集箱</h2>
+            <p class="hint">和首页是同一条清单。超过 3 天会在日复盘里再问你。</p>
+            <ul class="stack" id="spark-inbox" style="list-style:none;margin:12px 0 0;padding:0"></ul>
+          </section>
+          <section>
+            <h2>培育</h2>
+            <p class="hint">先放着。超过 14 天，周五必须再选一次。</p>
+            <ul class="stack" id="spark-hold" style="list-style:none;margin:12px 0 0;padding:0">
+              <li class="card spark">
+                <p>也许该把「等待别人」单独写进周报</p>
+                <p class="meta">培育 6 天</p>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h2>写作中</h2>
+            <ul class="stack" id="spark-write" style="list-style:none;margin:12px 0 0;padding:0">
+              <li class="card">
+                <strong>一个人怎么把一周写完</strong>
+                <p class="meta">构思 · 出发点：周五不要靠回忆写周报</p>
+                <button class="btn btn-ghost" type="button" data-open-piece="article">继续写</button>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h2>实践中</h2>
+            <ul class="stack" id="spark-try" style="list-style:none;margin:12px 0 0;padding:0">
+              <li class="card">
+                <strong>晨会只讲三件事</strong>
+                <p class="meta">最小一步还没做 · 想验证：三件事是否够用</p>
+                <button class="btn btn-ghost" type="button" data-open-piece="practice">记下结果</button>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h2>本周已落成</h2>
+            <ul class="stack" style="list-style:none;margin:12px 0 0;padding:0">
+              <li class="card">
+                <strong>顺延不是消失</strong>
+                <p class="meta"><span class="flag flag-ok">已成文</span> 从一句灵感长出来的短文</p>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" id="schedule" data-screen="schedule" hidden>
+        <header class="day-head">
+          <div>
+            <p class="kicker">第 47 周 · 11月16日到22日</p>
+            <h1>日程</h1>
+            <p class="draft-note">按一周看每天的大概安排。点选一天，再往下加一块时间。</p>
+          </div>
+        </header>
+        <div class="week" role="list">
+          <article class="week-day is-today" role="listitem">
+            <button type="button" class="week-pick" data-day="16" aria-pressed="true"><span class="week-wd">周一</span><span class="week-num">16</span><span class="week-tag">今天</span></button>
+            <p class="week-summary">晨会 · 写周报 · 需求讨论 · 日复盘</p>
+            <ul class="week-detail" id="day-16">
+              <li><time>09:00</time><span>团队晨会</span></li>
+              <li><time>10:00</time><span>写周报</span></li>
+              <li><time>14:00</time><span>需求讨论</span></li>
+              <li><time>19:30</time><span>日复盘</span></li>
+            </ul>
+          </article>
+          <article class="week-day" role="listitem">
+            <button type="button" class="week-pick" data-day="17" aria-pressed="false"><span class="week-wd">周二</span><span class="week-num">17</span></button>
+            <p class="week-summary">直播彩排 · 改提纲</p>
+            <ul class="week-detail" id="day-17">
+              <li><time>09:30</time><span>直播彩排</span></li>
+              <li><time>14:00</time><span>改提纲</span></li>
+            </ul>
+          </article>
+          <article class="week-day" role="listitem">
+            <button type="button" class="week-pick" data-day="18" aria-pressed="false"><span class="week-wd">周三</span><span class="week-num">18</span></button>
+            <p class="week-summary">客户同步</p>
+            <ul class="week-detail" id="day-18"><li><time>10:00</time><span>客户同步</span></li></ul>
+          </article>
+          <article class="week-day" role="listitem">
+            <button type="button" class="week-pick" data-day="19" aria-pressed="false"><span class="week-wd">周四</span><span class="week-num">19</span></button>
+            <p class="week-summary">资料归档</p>
+            <ul class="week-detail" id="day-19"><li><time>15:00</time><span>资料归档</span></li></ul>
+          </article>
+          <article class="week-day" role="listitem">
+            <button type="button" class="week-pick" data-day="20" aria-pressed="false"><span class="week-wd">周五</span><span class="week-num">20</span></button>
+            <p class="week-summary">周复盘</p>
+            <ul class="week-detail" id="day-20"><li><time>16:00</time><span>周复盘</span></li></ul>
+          </article>
+          <article class="week-day" role="listitem">
+            <button type="button" class="week-pick" data-day="21" aria-pressed="false"><span class="week-wd">周六</span><span class="week-num">21</span></button>
+            <p class="week-summary">没有安排</p>
+            <ul class="week-detail" id="day-21"></ul>
+          </article>
+          <article class="week-day" role="listitem">
+            <button type="button" class="week-pick" data-day="22" aria-pressed="false"><span class="week-wd">周日</span><span class="week-num">22</span></button>
+            <p class="week-summary">没有安排</p>
+            <ul class="week-detail" id="day-22"></ul>
+          </article>
+        </div>
+        <form class="card form-grid cols-2" id="block-form">
+          <label class="field">开始
+            <input name="start" type="time" required value="16:00">
+          </label>
+          <label class="field">结束
+            <input name="end" type="time" required value="17:00">
+          </label>
+          <label class="field" style="grid-column:1/-1">这块时间做什么<span class="req"></span>
+            <input name="title" type="text" required placeholder="例如：整理会议材料">
+          </label>
+          <label class="field" style="grid-column:1/-1">挂一条待办
+            <select name="todo">
+              <option value="">不挂</option>
+              <option>准备会议材料</option>
+              <option>整理项目周报并提交</option>
+            </select>
+          </label>
+          <div><button class="btn btn-primary" type="submit" id="block-submit">加到周一</button></div>
+        </form>
+      </section>
+
+      <section class="screen" id="daily" data-screen="daily" hidden>
+        <header class="day-head">
+          <div>
+            <p class="kicker">晚上 · 大约 5 分钟</p>
+            <h1>日复盘</h1>
+            <p class="draft-note">完成了什么是从今天勾过的待办带出来的。你补的是判断，不是再记一遍。</p>
+          </div>
+          <button class="btn btn-ghost" type="button" data-go="weekly">去看周复盘</button>
+        </header>
+
+        <ol class="steps">
+          <li>
+            <span class="step-no">1</span>
+            <div>
+              <h2>今天完成的</h2>
+              <ul class="prefill">
+                <li>发出上周会议纪要，推进了「阶段文档交出去」</li>
+              </ul>
+              <p class="hint">正式版会把你今天勾掉的待办填在这里。</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-no">2</span>
+            <div>
+              <h2>没做完的，怎么处理</h2>
+              <strong>准备会议材料</strong>
+              <p class="meta">逾期 · 已顺延 2 次</p>
+              <div class="choice" role="group" aria-label="准备会议材料怎么处理">
+                <button class="btn btn-quiet" type="button" aria-pressed="true">明天</button>
+                <button class="btn btn-quiet" type="button" aria-pressed="false">改期</button>
+                <button class="btn btn-quiet" type="button" aria-pressed="false">放弃</button>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-no">3</span>
+            <form class="form-grid" id="daily-form">
+              <h2>一个卡点</h2>
+              <label class="field">今天卡在哪里
+                <textarea name="block" placeholder="一句话就够"></textarea>
+              </label>
+              <h2>明天最多三件</h2>
+              <label class="field">第 1 件
+                <input type="text" value="整理项目周报并提交">
+              </label>
+              <label class="field">第 2 件
+                <input type="text" placeholder="可以空着">
+              </label>
+              <label class="field">第 3 件
+                <input type="text" placeholder="可以空着">
+              </label>
+              <button class="btn btn-primary" type="submit">保存今天的复盘</button>
+            </form>
+          </li>
+          <li>
+            <span class="step-no">4</span>
+            <div>
+              <h2>还没分流的灵感</h2>
+              <p>周报里要有一个数字</p>
+              <p class="meta">已放 3 天。今天选一个去向，或先放着。</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="screen" id="weekly" data-screen="weekly" hidden>
+        <header class="day-head">
+          <div>
+            <p class="kicker">星期五 · 大约 25 分钟</p>
+            <h1>周复盘</h1>
+            <p class="draft-note">四段文字从这一周的记录里长出来。确认之后，写成下周的目标。</p>
+          </div>
+          <button class="btn btn-ghost" type="button" data-go="daily">回到日复盘</button>
+        </header>
+
+        <ol class="steps">
+          <li>
+            <span class="step-no">1</span>
+            <div>
+              <h2>本周完成</h2>
+              <ul class="prefill">
+                <li>发出上周会议纪要</li>
+                <li>已成文：顺延不是消失</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="step-no">2</span>
+            <div>
+              <h2>目标差距</h2>
+              <ul class="prefill">
+                <li>阶段文档交出去，现在 60%，还差提交</li>
+                <li>直播流程跑通一次，提纲还没写</li>
+                <li>读完一章并实践，仍是 0%</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="step-no">3</span>
+            <div>
+              <h2>问题</h2>
+              <p class="meta">日复盘里重复出现的卡点会聚在这里。这周的示例还只有一天。</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-no">4</span>
+            <div>
+              <h2>培育超过 14 天</h2>
+              <p class="hint">这周没有。有的话，同样要选一个去向。</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-no">5</span>
+            <form class="form-grid" id="weekly-form">
+              <h2>下周三个目标</h2>
+              <label class="field">目标 1
+                <input type="text" value="把阶段文档交出去">
+              </label>
+              <label class="field">目标 2
+                <input type="text" value="直播按提纲完整走一遍">
+              </label>
+              <label class="field">目标 3
+                <input type="text" placeholder="可以空着">
+              </label>
+              <div class="row-actions">
+                <button class="btn btn-primary" type="submit">确认并写入下周</button>
+                <button class="btn btn-quiet" type="button" id="copy-report">复制周报</button>
+              </div>
+            </form>
+          </li>
+        </ol>
+      </section>
+
+      <section class="screen" id="settings" data-screen="settings" hidden>
+        <header class="day-head">
+          <div>
+            <p class="kicker">这一份工作台</p>
+            <h1>设置</h1>
+            <p class="draft-note">标题和备注都出现在左上角。备注留空就不显示。</p>
+          </div>
+        </header>
+        <form class="card form-grid" id="name-form">
+          <label class="field">标题
+            <input id="site-name-input" name="name" type="text" maxlength="24" required value="Daydesk" autocomplete="off">
+          </label>
+          <label class="field">备注
+            <input id="site-note-input" name="note" type="text" maxlength="32" value="" placeholder="留空则不显示" autocomplete="off">
+          </label>
+          <div><button class="btn btn-primary" type="submit">保存</button></div>
+        </form>
+        <section class="section" aria-labelledby="theme-title">
+          <div class="section-head">
+            <h2 id="theme-title">配色</h2>
+            <p>三套只换颜色，版式相同</p>
+          </div>
+          <div class="theme-bar" role="group" aria-label="配色">
+            <button type="button" data-theme-pick="paper" aria-pressed="true"><span class="swatch swatch-paper" aria-hidden="true"></span>纸本</button>
+            <button type="button" data-theme-pick="stone"><span class="swatch swatch-stone" aria-hidden="true"></span>青石</button>
+            <button type="button" data-theme-pick="ink"><span class="swatch swatch-ink" aria-hidden="true"></span>墨蓝</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主要">
+      <button type="button" data-go="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>今天</button>
+      <button type="button" data-go="todos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>待办</button>
+      <button type="button" data-go="sparks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3 11c.5.4.8 1 .8 1.6V17h4.4v-1.4c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3z"/></svg>灵感</button>
+      <button type="button" data-go="schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>日程</button>
+      <button type="button" data-go="daily"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v16l-7-3-7 3V4a1 1 0 0 1 1-1z"/></svg>复盘</button>
+      <button type="button" data-go="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>设置</button>
+    </nav>
+  </div>
+
+  <dialog id="piece">
+    <div class="sheet">
+      <div class="sheet-head">
+        <div>
+          <p class="kicker" id="piece-kicker">写成文章</p>
+          <h2 class="piece-title" id="piece-title">从这句开始</h2>
+        </div>
+        <button class="btn btn-quiet" type="button" id="piece-close">关闭</button>
+      </div>
+      <form id="piece-form" class="form-grid"></form>
+    </div>
+  </dialog>
+
+  <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  <script src="draft.js"></script>
+</body>
+</html>

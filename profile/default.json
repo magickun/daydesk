@@ -1,0 +1,7 @@
+{
+  "inbox_nudge_days": 3,
+  "hold_nudge_days": 14,
+  "postpone_limit": 5,
+  "wait_nudge_days": 3,
+  "goal_slots": 3
+}

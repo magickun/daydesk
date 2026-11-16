@@ -1,0 +1,8 @@
+.venv
+data
+draft
+design-system
+.git
+**/__pycache__
+**/.pytest_cache
+.env
