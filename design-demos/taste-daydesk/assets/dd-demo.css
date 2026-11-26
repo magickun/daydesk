@@ -1,0 +1,101 @@
+/* Daydesk UI mock for tasteskill demos — not production app */
+.dd-shell {
+  --dd-nav: 13.5rem;
+  font-family: var(--font-text);
+  color: var(--p-ink);
+  background: var(--p-bg);
+  min-height: 100dvh;
+}
+.dd-shell * { box-sizing: border-box; }
+.dd-frame {
+  display: grid;
+  grid-template-columns: var(--dd-nav) minmax(0, 1fr);
+  min-height: 560px;
+  border-radius: var(--r-lg, 12px);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--p-ink) 12%, transparent),
+    0 24px 64px -32px color-mix(in oklab, var(--p-ink) 35%, transparent);
+  background: var(--p-surface);
+}
+.dd-side {
+  padding: var(--s-5, 20px) var(--s-4, 16px);
+  border-right: 1px solid color-mix(in oklab, var(--p-ink) 8%, transparent);
+  background: color-mix(in oklab, var(--p-surface) 85%, var(--p-bg));
+}
+.dd-side .logo {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight, 500);
+  font-size: 1.125rem;
+  letter-spacing: var(--display-tracking, -0.02em);
+  margin: 0 0 var(--s-6, 24px);
+}
+.dd-side nav { display: flex; flex-direction: column; gap: 2px; }
+.dd-side a, .dd-side span {
+  display: block;
+  padding: 10px 12px;
+  border-radius: var(--r-sm, 6px);
+  font-size: 14px;
+  color: var(--p-muted);
+  text-decoration: none;
+  min-height: 44px;
+  line-height: 24px;
+}
+.dd-side .is-on {
+  background: var(--p-bg);
+  color: var(--p-ink);
+  font-weight: 600;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--p-ink) 6%, transparent);
+}
+.dd-main { padding: var(--s-6, 24px) var(--s-6, 24px) var(--s-7, 32px); min-width: 0; }
+.dd-main h2.dd-h {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight, 500);
+  font-size: clamp(1.5rem, 3vw, 1.75rem);
+  letter-spacing: var(--display-tracking, -0.02em);
+  margin: 0 0 var(--s-2, 8px);
+}
+.dd-lead { margin: 0 0 var(--s-5, 20px); color: var(--p-muted); font-size: 15px; max-width: 42ch; }
+.dd-capture {
+  display: flex; gap: 8px; margin-bottom: var(--s-6, 24px);
+  padding: 6px; background: var(--p-bg); border-radius: var(--r-md, 10px);
+  border: 1px solid color-mix(in oklab, var(--p-ink) 8%, transparent);
+}
+.dd-capture input {
+  flex: 1; border: 0; background: transparent; min-height: 44px; padding: 0 10px;
+  font: inherit; color: inherit; outline: none;
+}
+.dd-trio { display: grid; gap: 10px; margin-bottom: var(--s-6, 24px); }
+.dd-task {
+  display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  gap: 12px; align-items: center;
+  padding: 14px 16px;
+  background: var(--p-bg);
+  border-radius: var(--r-md, 10px);
+  border: 1px solid color-mix(in oklab, var(--p-ink) 7%, transparent);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.dd-task:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -22px color-mix(in oklab, var(--p-ink) 40%, transparent); }
+.dd-task .ix { font-family: var(--font-mono); font-size: 13px; color: var(--p-muted); }
+.dd-task strong { font-weight: 600; font-size: 15px; }
+.dd-task .meta { grid-column: 2; font-size: 13px; color: var(--p-muted); margin-top: -6px; }
+.dd-task .tag {
+  font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 99px;
+  background: color-mix(in oklab, var(--p-accent) 35%, var(--p-bg));
+  color: var(--p-accent-ink);
+}
+.dd-task.is-late .tag { background: #fde8e8; color: #9f1239; }
+.dd-board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dd-tile {
+  padding: 14px 16px; border-radius: var(--r-md, 10px);
+  border: 1px solid color-mix(in oklab, var(--p-ink) 7%, transparent);
+  background: color-mix(in oklab, var(--p-surface) 70%, var(--p-bg));
+}
+.dd-tile h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--p-muted); }
+.dd-tile li { list-style: none; font-size: 14px; padding: 6px 0; border-top: 1px solid color-mix(in oklab, var(--p-ink) 6%, transparent); }
+.dd-tile ul { margin: 0; padding: 0; }
+.dd-tile li:first-child { border-top: 0; padding-top: 0; }
+@media (max-width: 700px) {
+  .dd-frame { grid-template-columns: 1fr; min-height: 0; }
+  .dd-side { display: none; }
+  .dd-board { grid-template-columns: 1fr; }
+}

@@ -5,6 +5,7 @@
   var todoFormOpen = false;
   var goalEditing = false;
   var toastTimer = null;
+  var inboxRitual = { queue: [], index: 0, resumeAfterPiece: false };
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -90,6 +91,82 @@
     var day = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
     day.setUTCDate(day.getUTCDate() + count);
     return day.toISOString().slice(0, 10);
+  }
+
+  function updateInboxChrome() {
+    if (!state) return;
+    var count = state.inbox.length;
+    var banner = document.getElementById("inbox-banner");
+    var bannerText = document.getElementById("inbox-banner-text");
+    if (banner && bannerText) {
+      banner.hidden = !count;
+      bannerText.textContent = count
+        ? "收集箱里有 " + count + " 条还没分流。白天只抓取就好，有空再处理。"
+        : "";
+    }
+    document.querySelectorAll(".process-inbox").forEach(function (btn) {
+      btn.hidden = !count;
+    });
+    var dailyCta = document.getElementById("daily-inbox-cta");
+    if (dailyCta) dailyCta.hidden = !count;
+  }
+
+  function ritualDialog() {
+    return document.getElementById("inbox-ritual");
+  }
+
+  function currentRitualSpark() {
+    if (!state || !inboxRitual.queue.length) return null;
+    var id = inboxRitual.queue[inboxRitual.index];
+    return state.inbox.filter(function (item) { return item.id === id; })[0] || null;
+  }
+
+  function showRitualStep() {
+    var spark = currentRitualSpark();
+    while (!spark && inboxRitual.index < inboxRitual.queue.length) {
+      inboxRitual.index += 1;
+      spark = currentRitualSpark();
+    }
+    if (!spark) {
+      closeInboxRitual(true);
+      return;
+    }
+    var total = inboxRitual.queue.length;
+    var pos = inboxRitual.index + 1;
+    document.getElementById("ritual-text").textContent = spark.text;
+    document.getElementById("ritual-progress-label").textContent = pos + " / " + total;
+    var bar = document.getElementById("ritual-bar");
+    bar.max = total;
+    bar.value = pos;
+    ritualDialog().dataset.spark = String(spark.id);
+  }
+
+  function openInboxRitual() {
+    if (!state || !state.inbox.length) {
+      toast("收集箱是空的");
+      return;
+    }
+    inboxRitual.queue = state.inbox.map(function (item) { return item.id; });
+    inboxRitual.index = 0;
+    inboxRitual.resumeAfterPiece = false;
+    showRitualStep();
+    ritualDialog().showModal();
+  }
+
+  function advanceInboxRitual() {
+    inboxRitual.index += 1;
+    if (!state || inboxRitual.index >= inboxRitual.queue.length || !state.inbox.length) {
+      closeInboxRitual(true);
+      return;
+    }
+    showRitualStep();
+  }
+
+  function closeInboxRitual(finished) {
+    ritualDialog().close();
+    inboxRitual.queue = [];
+    inboxRitual.index = 0;
+    if (finished) toast("收集箱这一轮处理完了。");
   }
 
   function findSpark(id) {
@@ -232,6 +309,7 @@
     count.textContent = state.inbox.length
       ? state.inbox.length + " 条还没决定去向" + (aged ? "，其中 " + aged + " 条超过 " + state.rules.inbox_nudge_days + " 天" : "")
       : "收集箱是空的";
+    updateInboxChrome();
   }
 
   function renderTimes() {
@@ -372,6 +450,7 @@
 
   function renderSparks() {
     fillList("spark-inbox", state.inbox, function (spark) { return sparkCard(spark, true); }, "收集箱是空的。");
+    updateInboxChrome();
     fillList("spark-hold", state.holds, function (spark) {
       return sparkCard(spark, spark.aged);
     }, "没有先放着的灵感。");
@@ -481,6 +560,7 @@
     } else {
       state.daily.aged.forEach(function (spark) { aged.appendChild(sparkCard(spark, true)); });
     }
+    updateInboxChrome();
   }
 
   function renderOpen() {
@@ -755,9 +835,57 @@
     send("/api/sparks", "POST", { text: text }).then(function (ok) {
       if (!ok) return;
       input.value = "";
-      toast("已放进收集箱。它可以先躺着，不必马上变成待办。");
+      toast("已放进收集箱。傍晚用「处理收集箱」再分流。");
     });
   });
+
+  function bindInboxRitual() {
+    ["start-inbox-ritual", "start-inbox-ritual-sparks", "daily-start-ritual", "inbox-banner-ritual"].forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node) node.addEventListener("click", openInboxRitual);
+    });
+    document.getElementById("ritual-dismiss").addEventListener("click", function () {
+      closeInboxRitual(false);
+      toast("改天再处理。");
+    });
+    document.getElementById("ritual-skip").addEventListener("click", function () {
+      toast("留在收集箱，下一条。");
+      advanceInboxRitual();
+    });
+    document.getElementById("ritual-drop").addEventListener("click", function () {
+      var spark = currentRitualSpark();
+      if (!spark) return;
+      if (!window.confirm("删掉这条？不会进入任何泳道。")) return;
+      send("/api/sparks/" + spark.id, "DELETE").then(function (ok) {
+        if (!ok) return;
+        toast("已删掉。");
+        advanceInboxRitual();
+      });
+    });
+    document.getElementById("ritual-actions").addEventListener("click", function (event) {
+      var btn = event.target.closest("[data-ritual-flow]");
+      if (!btn) return;
+      var kind = btn.getAttribute("data-ritual-flow");
+      var spark = currentRitualSpark();
+      if (!spark) return;
+      if (kind === "write" || kind === "try") {
+        inboxRitual.resumeAfterPiece = true;
+        openPiece(kind, spark);
+        return;
+      }
+      send("/api/sparks/" + spark.id + "/flow", "POST", { action: kind }).then(function (ok) {
+        if (!ok) return;
+        if (kind === "hold") toast("先放着。");
+        else toast("已变成待办。");
+        advanceInboxRitual();
+      });
+    });
+    ritualDialog().addEventListener("cancel", function (event) {
+      event.preventDefault();
+      closeInboxRitual(false);
+    });
+  }
+  bindInboxRitual();
 
   document.getElementById("add-todo").addEventListener("click", function () {
     todoFormOpen = !todoFormOpen;
@@ -980,7 +1108,12 @@
       else if (mode === "write") toast("文章已开篇。写完后会算进本周已落成。");
       else if (settle) toast(mode === "edit-write" ? "这篇算进本周已落成了。" : "这次实践做完了。");
       else toast("先留着。");
-      show("sparks");
+      if (inboxRitual.resumeAfterPiece && ritualDialog().open) {
+        inboxRitual.resumeAfterPiece = false;
+        advanceInboxRitual();
+      } else {
+        show("sparks");
+      }
     });
   });
 

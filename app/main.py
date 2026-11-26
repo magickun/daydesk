@@ -172,6 +172,11 @@ def post_spark(body: SparkIn):
     return _call(store.add_spark, body.text)
 
 
+@app.delete("/api/sparks/{spark_id}")
+def remove_spark(spark_id: int):
+    return _call(store.delete_spark, spark_id)
+
+
 @app.post("/api/sparks/{spark_id}/flow")
 def post_flow(spark_id: int, body: FlowIn):
     return _call(store.flow_spark, spark_id, body.action, body.model_dump())

@@ -482,6 +482,19 @@ def flow_spark(spark_id: int, action: str, fields: dict) -> dict:
     return board()
 
 
+def delete_spark(spark_id: int) -> dict:
+    def op(conn):
+        row = conn.execute("SELECT * FROM sparks WHERE id = ?", (spark_id,)).fetchone()
+        if row is None:
+            raise DeskError("这条灵感不在")
+        if row["status"] != "inbox":
+            raise DeskError("只能删掉还在收集箱里的条目")
+        conn.execute("DELETE FROM sparks WHERE id = ?", (spark_id,))
+
+    write(op)
+    return board()
+
+
 def update_spark(spark_id: int, fields: dict) -> dict:
     settle = bool(fields.get("settle"))
 

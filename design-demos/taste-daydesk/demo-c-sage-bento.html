@@ -1,0 +1,173 @@
+<!doctype html>
+<!-- tasteskill · Daydesk demo C · blush-sage-slate · urbanist · round · bento -->
+<html lang="zh-CN" data-type="software" data-radius="round" data-motion="on">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="page-type" content="software">
+  <meta name="site-kind" content="software">
+  <title>Daydesk · 雾苔 bento（清新）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/system.css">
+  <link rel="stylesheet" href="assets/motion/motion.css">
+  <link rel="stylesheet" href="assets/dd-demo.css">
+  <style>
+    /* 清新：晨雾薄荷底 + 白卡片 + 青绿强调（低饱和，非原雾苔灰绿） */
+    :root {
+      --p-bg: #f0faf6;
+      --p-surface: #ffffff;
+      --p-ink: #1a2e28;
+      --p-muted: #5c7169;
+      --p-accent: #0d9488;
+      --p-accent-ink: #ffffff;
+      --p-action: #0f766e;
+      --p-action-ink: #ffffff;
+      --font-display: "Urbanist", system-ui, sans-serif;
+      --font-text: "Urbanist", system-ui, sans-serif;
+      --font-mono: "DM Mono", ui-monospace, monospace;
+      --display-weight: 500; --display-tracking: -0.03em;
+      --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+    }
+    body {
+      margin: 0; min-height: 100dvh; padding: 24px;
+      background:
+        radial-gradient(90% 70% at 10% 0%, #d4f5ea 0%, transparent 55%),
+        radial-gradient(80% 60% at 100% 20%, #e0f2fe 0%, transparent 50%),
+        linear-gradient(180deg, #ecfbf6 0%, #f6fbfa 45%, #eef6f3 100%);
+    }
+    .phone-bar {
+      max-width: 960px; margin: 0 auto 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; font-weight: 600; color: var(--p-ink);
+    }
+    .dd-frame {
+      min-height: auto; border-radius: var(--r-lg); max-width: 960px; margin: 0 auto;
+      box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--p-accent) 12%, transparent),
+        0 20px 48px -28px color-mix(in oklab, #0d9488 22%, transparent);
+    }
+    .dd-side {
+      background: color-mix(in oklab, var(--p-bg) 70%, #ffffff);
+      border-radius: var(--r-lg) 0 0 var(--r-lg);
+    }
+    .dd-side .is-on {
+      background: #ffffff;
+      color: var(--p-action);
+      box-shadow: 0 1px 0 color-mix(in oklab, var(--p-accent) 15%, transparent);
+    }
+    .bento {
+      display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 14px;
+    }
+    .bento .dd-trio { margin: 0; }
+    .inbox-card {
+      padding: 16px 18px; border-radius: var(--r-md);
+      background: color-mix(in oklab, var(--p-bg) 40%, #ffffff);
+      border: 1px solid color-mix(in oklab, var(--p-accent) 14%, transparent);
+    }
+    .dd-task {
+      background: #ffffff;
+      border-color: color-mix(in oklab, var(--p-accent) 10%, transparent);
+    }
+    .dd-task:hover {
+      box-shadow: 0 10px 28px -20px color-mix(in oklab, var(--p-accent) 35%, transparent);
+    }
+    .dd-task .tag {
+      background: color-mix(in oklab, var(--p-accent) 14%, var(--p-bg));
+      color: var(--p-action);
+    }
+    .dd-task.is-late .tag {
+      background: #fff1f2;
+      color: #be123c;
+    }
+    .dd-tile {
+      background: color-mix(in oklab, var(--p-bg) 35%, #ffffff);
+      border-color: color-mix(in oklab, var(--p-accent) 10%, transparent);
+    }
+    .inbox-card h3 { margin: 0 0 12px; font-size: 15px; }
+    .inbox-card li { list-style: none; font-size: 14px; padding: 8px 0; border-top: 1px solid color-mix(in oklab, var(--p-ink) 5%, transparent); }
+    .inbox-card ul { margin: 0; padding: 0; }
+    .demo-tag { position: fixed; top: 12px; right: 12px; z-index: 99; font-size: 12px; padding: 6px 10px; background: var(--p-accent); color: var(--p-accent-ink); border-radius: 99px; }
+    .dd-capture .btn-go {
+      min-height: 44px; padding: 0 18px; border-radius: 99px;
+      background: var(--p-action); color: var(--p-action-ink); border: 0; font-weight: 700;
+    }
+    @media (max-width: 720px) { .bento { grid-template-columns: 1fr; } body { padding: 12px; } }
+  </style>
+</head>
+<body data-enter>
+  <p class="demo-tag">taste · C 雾苔 bento · 清新</p>
+  <div class="phone-bar">
+    <span>Daydesk</span>
+    <span style="font-family:var(--font-mono);font-weight:500">11月26日</span>
+  </div>
+  <div class="dd-shell dd-frame">
+    <aside class="dd-side">
+      <p class="logo">Daydesk</p>
+      <nav>
+        <span class="is-on">今天</span>
+        <span>待办</span>
+        <span>灵感</span>
+        <span>日程</span>
+        <span>复盘</span>
+      </nav>
+    </aside>
+    <main class="dd-main">
+      <h2 class="dd-h">今天</h2>
+      <p class="dd-lead">先收一句灵感，再决定三件。</p>
+      <form class="dd-capture" onsubmit="return false">
+        <input type="text" placeholder="记下一句灵感" aria-label="灵感">
+        <button class="btn-go" type="submit">收下</button>
+      </form>
+      <div class="bento">
+        <section>
+          <h2 class="dd-h" style="font-size:1rem;margin-bottom:12px">现在就做这三件</h2>
+          <div class="dd-trio">
+            <article class="dd-task is-late" style="border-radius:var(--r-md)">
+              <span class="ix">1</span>
+              <strong>把周报发给项目组</strong>
+              <span class="tag">逾期</span>
+            </article>
+            <article class="dd-task" style="border-radius:var(--r-md)">
+              <span class="ix">2</span>
+              <strong>整理会议材料</strong>
+              <span class="tag">今天</span>
+            </article>
+            <article class="dd-task" style="border-radius:var(--r-md)">
+              <span class="ix">3</span>
+              <strong>回复预算邮件</strong>
+              <span class="tag">等</span>
+            </article>
+          </div>
+        </section>
+        <aside class="inbox-card">
+          <h3>收集箱</h3>
+          <ul>
+            <li>部署文档要不要单独一页</li>
+            <li>周五前提醒交图</li>
+            <li>读完 GTD 过载那篇</li>
+          </ul>
+        </aside>
+      </div>
+      <div class="dd-board" style="margin-top:16px">
+        <section class="dd-tile" style="border-radius:var(--r-md)">
+          <h3>本周要交</h3>
+          <ul>
+            <li>MVP 演示 2/5</li>
+            <li>复盘模板 0/3</li>
+          </ul>
+        </section>
+        <section class="dd-tile" style="border-radius:var(--r-md)">
+          <h3>今天的时间</h3>
+          <ul>
+            <li>09:30 站会</li>
+            <li>16:00 材料整理</li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="assets/motion/motion.js"></script>
+</body>
+</html>

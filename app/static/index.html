@@ -15,7 +15,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
@@ -43,50 +43,61 @@
           <div>
             <p class="kicker" id="today-kicker">本周</p>
             <h1 id="today-heading">今天</h1>
-            <p class="draft-note">先看这三件事，再看时间、本周要交的和收集箱。</p>
+            <p class="draft-note">三件 → 先收下进收集箱 → 傍晚再分流 → 时间和本周要交。</p>
           </div>
         </header>
-        <form class="capture" id="capture-form">
+        <form class="capture zone zone--capture" id="capture-form">
           <label for="capture">记下一句灵感</label>
-          <input id="capture" name="spark" type="text" maxlength="140" placeholder="记下一句，回车放进收集箱" autocomplete="off">
-          <button class="btn btn-primary" type="submit">收下</button>
-        </form>
-        <section class="section" aria-labelledby="top3-title">
-          <div class="section-head">
-            <h2 id="top3-title">现在就做这三件</h2>
-            <p>逾期和高优先级在前。昨天复盘里点名的待办会排上来。</p>
+          <div class="capture-row">
+            <input id="capture" name="spark" type="text" maxlength="140" placeholder="打字或输入法语音，检查后再点收下" autocomplete="off">
+            <button class="btn btn-primary" type="submit">收下</button>
           </div>
-          <div class="stack" id="top3"></div>
-        </section>
-        <section class="section" aria-labelledby="risk-title">
+        </form>
+        <div class="inbox-banner zone zone--inbox" id="inbox-banner" hidden>
+          <p id="inbox-banner-text">收集箱里还有条目没分流。</p>
+          <button type="button" class="btn btn-primary" id="inbox-banner-ritual">开始处理收集箱</button>
+        </div>
+        <div class="today-bento">
+          <section class="section zone zone--task today-bento__tasks" aria-labelledby="top3-title">
+            <div class="section-head">
+              <h2 id="top3-title">现在就做这三件</h2>
+              <p>逾期和高优先级在前。昨天复盘里点名的待办会排上来。</p>
+            </div>
+            <div class="stack stack-tasks" id="top3"></div>
+          </section>
+          <section class="panel zone zone--inbox today-bento__inbox" aria-labelledby="inbox-title">
+            <div class="section-head">
+              <h2 id="inbox-title">收集箱</h2>
+              <p id="inbox-count"></p>
+            </div>
+            <ul class="stack" id="inbox"></ul>
+            <div class="process-inbox-wrap">
+              <button type="button" class="btn btn-primary process-inbox" id="start-inbox-ritual" hidden>开始处理收集箱</button>
+            </div>
+          </section>
+        </div>
+        <section class="section zone zone--risk" aria-labelledby="risk-title">
           <div class="section-head">
             <h2 id="risk-title">要看一眼</h2>
             <p id="risk-note">逾期，或等待别人超过 3 天</p>
           </div>
           <div class="stack" id="risks"></div>
         </section>
-        <div class="board">
-          <section class="panel" aria-labelledby="sched-title">
+        <div class="board board--duo">
+          <section class="panel zone zone--time" aria-labelledby="sched-title">
             <div class="section-head">
               <h2 id="sched-title">今天的时间</h2>
               <button class="btn btn-ghost" type="button" data-go="schedule">看本周</button>
             </div>
             <div class="time-list" id="time-list"></div>
           </section>
-          <section class="panel" aria-labelledby="goals-title">
+          <section class="panel zone zone--goal" aria-labelledby="goals-title">
             <div class="section-head">
               <h2 id="goals-title">本周要交出去的</h2>
               <p>三个结果</p>
               <button class="btn btn-ghost" type="button" id="edit-goals" hidden>改这三个结果</button>
             </div>
             <div id="goals"></div>
-          </section>
-          <section class="panel" aria-labelledby="inbox-title">
-            <div class="section-head">
-              <h2 id="inbox-title">收集箱</h2>
-              <p id="inbox-count"></p>
-            </div>
-            <ul class="stack" id="inbox"></ul>
           </section>
         </div>
       </section>
@@ -106,11 +117,13 @@
           <button class="btn btn-quiet" type="button" aria-pressed="false" data-filter="wait">等待别人</button>
           <button class="btn btn-quiet" type="button" aria-pressed="false" data-filter="done">已完成</button>
         </div>
-        <ul class="stack" id="todo-list"></ul>
+        <div class="zone zone--task zone--list">
+          <ul class="stack" id="todo-list"></ul>
+        </div>
         <div class="add-bar">
           <button class="btn btn-primary" type="button" id="add-todo" aria-expanded="false" aria-controls="todo-form">新增待办</button>
         </div>
-        <form class="card form-grid cols-2" id="todo-form" hidden>
+        <form class="card form-grid cols-2 zone zone--task" id="todo-form" hidden>
           <label class="field" style="grid-column:1/-1">标题
             <input name="title" type="text" required maxlength="120" placeholder="例如：把周报发给项目组">
           </label>
@@ -148,25 +161,28 @@
           </div>
         </header>
         <div class="lanes">
-          <section class="lane lane-wide">
+          <section class="lane lane-wide zone zone--inbox">
             <h2>收集箱</h2>
             <p class="hint" id="inbox-hint">和首页是同一条清单。超过 3 天会在日复盘里再问你。</p>
+            <div class="process-inbox-wrap">
+              <button type="button" class="btn btn-primary process-inbox" id="start-inbox-ritual-sparks" hidden>开始处理收集箱</button>
+            </div>
             <ul class="stack" id="spark-inbox"></ul>
           </section>
-          <section class="lane">
+          <section class="lane zone zone--hold">
             <h2>培育</h2>
             <p class="hint" id="hold-hint">先放着。超过 14 天，周五必须再选一次。</p>
             <ul class="stack" id="spark-hold"></ul>
           </section>
-          <section class="lane">
+          <section class="lane zone zone--write">
             <h2>写作中</h2>
             <ul class="stack" id="spark-write"></ul>
           </section>
-          <section class="lane">
+          <section class="lane zone zone--try">
             <h2>实践中</h2>
             <ul class="stack" id="spark-try"></ul>
           </section>
-          <section class="lane">
+          <section class="lane zone zone--settled">
             <h2>本周已落成</h2>
             <ul class="stack" id="spark-settled"></ul>
           </section>
@@ -181,8 +197,8 @@
             <p class="draft-note">点选一天再加一块时间。勾上每周，这个时段会留在以后的每一周。</p>
           </div>
         </header>
-        <div class="week" id="week" role="list"></div>
-        <form class="card form-grid cols-2" id="block-form">
+        <div class="week zone zone--time" id="week" role="list"></div>
+        <form class="card form-grid cols-2 zone zone--time" id="block-form">
           <label class="field">开始
             <input name="start" type="time" required value="16:00">
           </label>
@@ -213,21 +229,21 @@
           <button class="btn btn-ghost" type="button" data-go="weekly">去看周复盘</button>
         </header>
         <ol class="steps">
-          <li class="step-done">
+          <li class="step-done zone zone--review zone--ok">
             <span class="step-no">1</span>
             <div>
               <h2>今天完成的</h2>
               <ul class="prefill" id="daily-done"></ul>
             </div>
           </li>
-          <li class="step-open" id="daily-open-step" data-keep>
+          <li class="step-open zone zone--review zone--warn" id="daily-open-step" data-keep>
             <span class="step-no">2</span>
             <div>
               <h2>没做完的，怎么处理</h2>
               <div class="stack" id="daily-open"></div>
             </div>
           </li>
-          <li id="daily-form-step" data-keep>
+          <li class="zone zone--review" id="daily-form-step" data-keep>
             <span class="step-no">3</span>
             <form class="form-grid" id="daily-form">
               <h2>一个卡点</h2>
@@ -248,10 +264,15 @@
               <button class="btn btn-primary" type="submit">保存今天的复盘</button>
             </form>
           </li>
-          <li>
+          <li class="zone zone--review zone--inbox">
             <span class="step-no">4</span>
             <div>
-              <h2>还没分流的灵感</h2>
+              <h2>收集箱与久未分流</h2>
+              <p class="hint" id="daily-inbox-hint">白天先收下；傍晚用处理仪式一次过一遍，超 3 天的也会出现在下面。</p>
+              <div class="process-inbox-wrap" id="daily-inbox-cta" hidden>
+                <button type="button" class="btn btn-primary process-inbox" id="daily-start-ritual">开始处理收集箱</button>
+                <p class="hint">全屏一次一条，比在下面逐条点更快。</p>
+              </div>
               <div class="stack" id="daily-aged"></div>
             </div>
           </li>
@@ -268,35 +289,35 @@
           <button class="btn btn-ghost" type="button" data-go="daily">回到日复盘</button>
         </header>
         <ol class="steps">
-          <li class="step-done">
+          <li class="step-done zone zone--review zone--ok">
             <span class="step-no">1</span>
             <div>
               <h2>本周完成</h2>
               <ul class="prefill" id="weekly-done"></ul>
             </div>
           </li>
-          <li>
+          <li class="zone zone--review zone--goal">
             <span class="step-no">2</span>
             <div>
               <h2>目标差距</h2>
               <ul class="prefill" id="weekly-gaps"></ul>
             </div>
           </li>
-          <li>
+          <li class="zone zone--review zone--warn">
             <span class="step-no">3</span>
             <div>
               <h2>问题</h2>
               <ul class="prefill" id="weekly-blockers"></ul>
             </div>
           </li>
-          <li>
+          <li class="zone zone--review zone--hold">
             <span class="step-no">4</span>
             <div>
               <h2>培育超过 14 天</h2>
               <div class="stack" id="weekly-aged"></div>
             </div>
           </li>
-          <li>
+          <li class="zone zone--review zone--goal">
             <span class="step-no">5</span>
             <form class="form-grid" id="weekly-form" data-keep>
               <h2>下周的目标</h2>
@@ -319,7 +340,7 @@
             <p class="draft-note">标题和备注都出现在左上角。备注留空就不显示。配色会记住在这台服务器上。</p>
           </div>
         </header>
-        <form class="card form-grid" id="name-form">
+        <form class="card form-grid zone zone--settings" id="name-form">
           <label class="field">标题
             <input id="site-name-input" name="name" type="text" maxlength="24" required value="Daydesk" autocomplete="off">
           </label>
@@ -328,13 +349,13 @@
           </label>
           <div><button class="btn btn-primary" type="submit">保存</button></div>
         </form>
-        <section class="section" aria-labelledby="theme-title">
+        <section class="section zone zone--settings" aria-labelledby="theme-title">
           <div class="section-head">
             <h2 id="theme-title">配色</h2>
-            <p>三套只换颜色，版式相同</p>
+            <p>三套只换强调色，版式相同</p>
           </div>
           <div class="theme-bar" role="group" aria-label="配色">
-            <button type="button" data-theme-pick="paper" aria-pressed="true"><span class="swatch swatch-paper" aria-hidden="true"></span>纸本</button>
+            <button type="button" data-theme-pick="paper" aria-pressed="true"><span class="swatch swatch-paper" aria-hidden="true"></span>清新</button>
             <button type="button" data-theme-pick="stone"><span class="swatch swatch-stone" aria-hidden="true"></span>青石</button>
             <button type="button" data-theme-pick="ink"><span class="swatch swatch-ink" aria-hidden="true"></span>墨蓝</button>
           </div>
@@ -352,8 +373,33 @@
     </nav>
   </div>
 
+  <dialog id="inbox-ritual" class="ritual-dialog">
+    <div class="sheet zone zone--inbox ritual-sheet">
+      <div class="sheet-head ritual-head">
+        <div>
+          <p class="kicker" id="ritual-kicker">处理收集箱</p>
+          <h2 class="piece-title" id="ritual-progress-label">1 / 1</h2>
+        </div>
+        <button class="btn btn-quiet" type="button" id="ritual-dismiss">改天再处理</button>
+      </div>
+      <progress class="ritual-bar" id="ritual-bar" value="0" max="1"></progress>
+      <blockquote class="ritual-quote" id="ritual-text"></blockquote>
+      <p class="ritual-hint">可行动吗？下一步的动词是什么？</p>
+      <div class="ritual-actions" id="ritual-actions">
+        <button type="button" class="ritual-act act-todo" data-ritual-flow="todo">转待办<span>会进待办清单，可再设截止日</span></button>
+        <button type="button" class="ritual-act act-write" data-ritual-flow="write">写成文章<span>进写作泳道</span></button>
+        <button type="button" class="ritual-act act-try" data-ritual-flow="try">做一次<span>拆成最小一步并生成待办</span></button>
+        <button type="button" class="ritual-act act-hold" data-ritual-flow="hold">先放着<span>超过 14 天周复盘会再问</span></button>
+      </div>
+      <div class="ritual-foot row-actions">
+        <button type="button" class="btn btn-ghost" id="ritual-skip">留在收集箱</button>
+        <button type="button" class="btn btn-ghost" id="ritual-drop">删掉</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="piece">
-    <div class="sheet">
+    <div class="sheet zone zone--write">
       <div class="sheet-head">
         <div>
           <p class="kicker" id="piece-kicker">写成文章</p>

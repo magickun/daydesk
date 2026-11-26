@@ -62,6 +62,14 @@ def test_postpone_stops_at_the_limit(client):
     assert dropped.json()["todos"] == []
 
 
+def test_spark_can_be_deleted_from_inbox(client):
+    sparked = client.post("/api/sparks", json={"text": "先删掉这条"})
+    spark_id = sparked.json()["inbox"][0]["id"]
+    removed = client.delete(f"/api/sparks/{spark_id}")
+    assert removed.status_code == 200
+    assert removed.json()["inbox"] == []
+
+
 def test_spark_can_become_practice(client):
     sparked = client.post("/api/sparks", json={"text": "晨会只讲三件事"})
     spark_id = sparked.json()["inbox"][0]["id"]

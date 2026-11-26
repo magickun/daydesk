@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daydesk · GTD 抓取与处理仪式（demo）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6fffb;
+      --surface: #fff;
+      --ink: #0f2922;
+      --muted: #4f6b63;
+      --line: #cce8de;
+      --accent: #0f766e;
+      --rail-inbox: #38bdf8;
+      --rail-task: #10b981;
+      --rail-capture: #2dd4bf;
+      --sans: "Plus Jakarta Sans", "PingFang SC", sans-serif;
+      --mono: "JetBrains Mono", monospace;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg);
+      font-size: 15px; line-height: 1.45;
+    }
+    .demo-tag {
+      position: fixed; top: 12px; right: 12px; z-index: 100;
+      font-size: 12px; padding: 6px 10px; background: var(--ink); color: #fff; border-radius: 8px;
+    }
+    .shell { max-width: 480px; margin: 0 auto; padding: 20px 16px 120px; }
+    h1 { font-size: 1.85rem; margin: 0; letter-spacing: -0.02em; }
+    .sub { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+    .tip {
+      margin: 16px 0; padding: 12px 14px; border-radius: 12px;
+      background: color-mix(in oklab, var(--rail-inbox) 8%, var(--surface));
+      border: 1px solid color-mix(in oklab, var(--rail-inbox) 25%, var(--line));
+      font-size: 13px; color: var(--muted);
+    }
+    .tip strong { color: var(--ink); }
+    .zone {
+      position: relative; padding: 14px 14px 14px 22px; margin-bottom: 16px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    }
+    .zone::before {
+      content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px;
+      border-radius: 4px; background: var(--rail, var(--accent));
+    }
+    .zone--capture { --rail: var(--rail-capture); }
+    .zone--inbox { --rail: var(--rail-inbox); }
+    .zone h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
+    .capture-row { display: flex; gap: 8px; align-items: stretch; }
+    .capture-row input {
+      flex: 1; min-height: 48px; border: 1px solid var(--line); border-radius: 12px;
+      padding: 0 12px; font: inherit; background: var(--bg);
+    }
+    .capture-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .btn {
+      min-height: 48px; padding: 0 16px; border-radius: 12px; border: 1px solid transparent;
+      font: inherit; font-weight: 700; cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost { background: var(--bg); border-color: var(--line); color: var(--ink); }
+    .btn-mic {
+      width: 48px; padding: 0; flex: none; display: grid; place-items: center;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      color: var(--accent);
+    }
+    .btn-mic[aria-pressed="true"] {
+      background: color-mix(in oklab, #ef4444 12%, white);
+      border-color: #fca5a5; color: #dc2626;
+      animation: pulse 1.2s ease infinite;
+    }
+    .btn-mic:disabled { opacity: 0.5; cursor: wait; }
+    @keyframes pulse { 50% { opacity: 0.85; } }
+    .btn-mic svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.75; }
+    .status-line { margin-top: 8px; font-size: 12px; color: var(--muted); min-height: 1.2em; }
+    .status-line.busy { color: var(--accent); font-weight: 600; }
+    ul.inbox { list-style: none; margin: 0; padding: 0; }
+    .inbox li {
+      padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px;
+    }
+    .inbox li:first-child { border-top: 0; padding-top: 0; }
+    .inbox .empty { color: var(--muted); font-size: 14px; }
+    .process-cta { margin-top: 12px; }
+    .process-cta .btn { width: 100%; }
+    .divider {
+      margin: 28px 0 20px; padding-top: 20px; border-top: 1px dashed var(--line);
+      font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em;
+    }
+
+    /* 处理仪式 overlay */
+    .ritual[hidden] { display: none !important; }
+    .ritual {
+      position: fixed; inset: 0; z-index: 50; background: rgba(15, 41, 34, 0.45);
+      display: grid; place-items: end center; padding: 16px;
+    }
+    @media (min-width: 520px) { .ritual { place-items: center; } }
+    .ritual-card {
+      width: min(440px, 100%); max-height: min(90dvh, 640px); overflow: auto;
+      background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px 18px 24px;
+      box-shadow: 0 -8px 40px rgba(0,0,0,.12);
+    }
+    @media (min-width: 520px) { .ritual-card { border-radius: 20px; } }
+    .ritual-progress {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 16px;
+    }
+    .ritual-progress progress { flex: 1; margin: 0 12px; height: 6px; accent-color: var(--accent); }
+    .ritual-quote {
+      font-size: 1.25rem; font-weight: 600; line-height: 1.35; margin: 0 0 8px;
+      padding: 16px; background: var(--bg); border-radius: 14px; border: 1px solid var(--line);
+    }
+    .ritual-hint { margin: 0 0 20px; font-size: 13px; color: var(--muted); }
+    .ritual-actions { display: grid; gap: 8px; }
+    .ritual-actions button {
+      min-height: 48px; border-radius: 14px; border: 1px solid var(--line);
+      background: var(--surface); font: inherit; font-weight: 700; cursor: pointer; text-align: left;
+      padding: 12px 14px;
+    }
+    .ritual-actions button span { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+    .ritual-actions .act-todo { border-color: color-mix(in oklab, var(--rail-task) 40%, var(--line)); }
+    .ritual-actions .act-write { border-color: color-mix(in oklab, #f472b6 35%, var(--line)); }
+    .ritual-actions .act-try { border-color: color-mix(in oklab, #22d3ee 35%, var(--line)); }
+    .ritual-actions .act-hold { border-color: color-mix(in oklab, #a78bfa 35%, var(--line)); }
+    .ritual-foot { display: flex; gap: 8px; margin-top: 16px; }
+    .ritual-foot .btn { flex: 1; }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 10px;
+      font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 60;
+    }
+    .toast.on { opacity: 1; }
+  </style>
+</head>
+<body>
+  <p class="demo-tag">GTD demo · 业界抓取 + 处理仪式</p>
+
+  <div class="shell">
+    <h1>今天</h1>
+    <p class="sub">11-26 · 周三 · 先收下，晚上再分流</p>
+
+    <p class="tip">
+      <strong>业界习惯：</strong>白天只抓取，不分类。输入法语音也行，进框后仍点「收下」。
+      晚上用「处理仪式」一次清完（Things / OmniFocus 的 Inbox 处理同理）。
+    </p>
+
+    <section class="zone zone--capture" aria-labelledby="cap-h">
+      <h2 id="cap-h">记下一句</h2>
+      <div class="capture-row">
+        <input type="text" id="capture" maxlength="200" placeholder="打字或输入法语音，检查后点收下" autocomplete="off">
+        <button type="button" class="btn btn-primary" id="accept">收下</button>
+      </div>
+    </section>
+
+    <section class="zone zone--inbox" aria-labelledby="inbox-h">
+      <h2 id="inbox-h">收集箱 · <span id="count">3</span> 条待处理</h2>
+      <ul class="inbox" id="inbox"></ul>
+      <div class="process-cta">
+        <button type="button" class="btn btn-primary" id="start-ritual">开始处理收集箱</button>
+      </div>
+    </section>
+
+    <p class="divider">下面是你合并进日复盘时会出现的入口（demo 示意）</p>
+    <p class="tip" style="margin-top:0">
+      正式产品：日晚盘第 4 步仍会兜底「超过 3 天未分流」；有仪式时，多数条目在傍晚已清空，复盘只做扫尾。
+    </p>
+  </div>
+
+  <div class="ritual" id="ritual" hidden role="dialog" aria-modal="true" aria-labelledby="ritual-title">
+    <div class="ritual-card">
+      <p class="ritual-progress">
+        <span id="ritual-title">处理收集箱</span>
+        <progress id="ritual-bar" value="0" max="3"></progress>
+        <span id="ritual-ix">0/0</span>
+      </p>
+      <blockquote class="ritual-quote" id="ritual-text"></blockquote>
+      <p class="ritual-hint">问一句：这条可行动吗？下一步动词是什么？（GTD clarify）</p>
+      <div class="ritual-actions">
+        <button type="button" class="act-todo" data-act="todo">转待办<span>会出现在待办清单，可再设截止日</span></button>
+        <button type="button" class="act-write" data-act="write">写成文章<span>进写作泳道</span></button>
+        <button type="button" class="act-try" data-act="try">做一次<span>拆成最小一步 + 待办</span></button>
+        <button type="button" class="act-hold" data-act="hold">先放着<span>培育泳道，14 天后周复盘再问</span></button>
+      </div>
+      <div class="ritual-foot">
+        <button type="button" class="btn btn-ghost" id="ritual-skip">留在收集箱</button>
+        <button type="button" class="btn btn-ghost" id="ritual-drop">删掉</button>
+        <button type="button" class="btn btn-ghost" id="ritual-close">改天再处理</button>
+      </div>
+    </div>
+  </div>
+  <p class="toast" id="toast"></p>
+
+  <script>
+    (function () {
+      var items = [
+        "周五前把周报发给项目组",
+        "读一下 GTD 里两分钟规则那段",
+        "要不要给 Daydesk 加语音"
+      ];
+      var queue = [];
+      var idx = 0;
+      var inboxEl = document.getElementById("inbox");
+      var countEl = document.getElementById("count");
+      var toast = document.getElementById("toast");
+      var capture = document.getElementById("capture");
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("on");
+        setTimeout(function () { toast.classList.remove("on"); }, 2200);
+      }
+
+      function renderInbox() {
+        inboxEl.innerHTML = "";
+        if (!items.length) {
+          inboxEl.innerHTML = "<li class=\"empty\">空的。白天想到什么就先收下。</li>";
+        } else {
+          items.forEach(function (t) {
+            var li = document.createElement("li");
+            li.textContent = t;
+            inboxEl.appendChild(li);
+          });
+        }
+        countEl.textContent = String(items.length);
+        document.getElementById("start-ritual").disabled = items.length === 0;
+      }
+
+      document.getElementById("accept").addEventListener("click", function () {
+        var t = capture.value.trim();
+        if (!t) return;
+        items.unshift(t);
+        capture.value = "";
+        renderInbox();
+        showToast("已进收集箱（未分类）");
+      });
+
+      capture.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); document.getElementById("accept").click(); }
+      });
+
+      function openRitual() {
+        queue = items.slice();
+        idx = 0;
+        if (!queue.length) return;
+        document.getElementById("ritual").hidden = false;
+        showStep();
+      }
+
+      function showStep() {
+        var total = queue.length;
+        document.getElementById("ritual-text").textContent = queue[idx];
+        document.getElementById("ritual-bar").max = total;
+        document.getElementById("ritual-bar").value = idx + 1;
+        document.getElementById("ritual-ix").textContent = (idx + 1) + "/" + total;
+      }
+
+      function finishItem(remove) {
+        var text = queue[idx];
+        if (remove) {
+          var i = items.indexOf(text);
+          if (i >= 0) items.splice(i, 1);
+        }
+        idx += 1;
+        if (idx >= queue.length) {
+          document.getElementById("ritual").hidden = true;
+          renderInbox();
+          showToast(remove ? "处理完成" : "已暂停");
+        } else {
+          showStep();
+        }
+      }
+
+      document.getElementById("start-ritual").addEventListener("click", openRitual);
+
+      document.querySelectorAll(".ritual-actions button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var labels = { todo: "已转待办", write: "已进写作", try: "已进实践", hold: "已先放着" };
+          showToast(labels[btn.getAttribute("data-act")] || "已处理");
+          finishItem(true);
+        });
+      });
+
+      document.getElementById("ritual-skip").addEventListener("click", function () {
+        showToast("留在收集箱");
+        finishItem(true);
+      });
+      document.getElementById("ritual-drop").addEventListener("click", function () {
+        showToast("已删掉");
+        finishItem(true);
+      });
+      document.getElementById("ritual-close").addEventListener("click", function () {
+        document.getElementById("ritual").hidden = true;
+        showToast("改天再处理");
+      });
+
+      renderInbox();
+    })();
+  </script>
+</body>
+</html>

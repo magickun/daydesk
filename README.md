@@ -15,34 +15,78 @@ uvicorn app.main:app --port 8000
 
 浏览器打开 http://127.0.0.1:8000/ 。
 
+抓取框可用**输入法语音**（文字进框后点「收下」），无需服务端语音识别。
+
 检查：
 
 ```bash
 pytest
 ```
 
-## 放到自己的服务器
+## 放到自己的服务器（ECS）
 
-服务器和域名由使用者自己买。这一份只交付软件。
+两种做法，**选一个惯用的即可**；数据都在 ECS 上的 `./data/daydesk.db`，换方式也不丢库。
+
+### 怎么选
+
+| | 方案 A · ECS 上构建 | 方案 B · 本机构镜像 + ACR |
+|--|---------------------|-----------------------------------------------|
+| 适合 | **默认推荐**，镜像小 | 想 ECS 更新更快、少在服务器 build |
+| ECS 上 | `git pull` + `docker compose build`（几分钟） | `git pull` + `docker pull`（几十秒） |
+| 本机 | 不用 Docker | 改代码后跑 `./scripts/push-image.sh` |
+| 复杂度 | 最少，和你以前一样 | 多一次 ACR 命名空间 + `docker login` |
+
+---
+
+### 方案 A：ECS 拉代码再构建（和以前一样）
 
 ```bash
-cp .env.example .env
-```
-
-在 `.env` 里写下 `DAYDESK_TOKEN`。不设口令时，任何能访问端口的人都能改数据。
-
-```bash
+git clone <仓库> ~/daydesk && cd ~/daydesk
+cp .env.example .env          # DAYDESK_TOKEN、DOMAIN（要 HTTPS 时）
 docker compose up -d --build
+docker compose --profile https up -d   # 可选
 ```
 
-基础镜像从 DaoCloud 的公开镜像拉取，避免在国内构建时直连 Docker Hub。程序听在 8000 端口。要让 Caddy 申请证书并把域名指过来：
+更新：`git pull && docker compose up -d --build`
+
+---
+
+### 方案 B：本机打一版，ECS 只拉镜像（简单省事）
+
+**一次性：**
+
+1. 阿里云控制台开一个 **容器镜像服务 ACR** 个人版实例，创建命名空间，记下地址，例如  
+   `registry.cn-hangzhou.aliyuncs.com/daydesk/daydesk:latest`
+2. 本机 `docker login --username=... registry.cn-hangzhou.aliyuncs.com`
+3. 本机 `.env`：`DAYDESK_TOKEN`、`DAYDESK_IMAGE=上面地址`
+4. ECS 同样 `git clone`，`.env` 与镜像地址一致；**不必在 ECS 安装构建环境**
+
+**平时改代码：**
 
 ```bash
-# .env 里的 DOMAIN 写成自己的域名，不要带 https://
-docker compose --profile https up -d
+# 本机
+./scripts/push-image.sh
+
+# ECS
+./scripts/ecs-update.sh
 ```
 
-域名的 A 记录指向这台机器。备份时复制 `data/daydesk.db` 即可。
+`push-image.sh` 用根目录 `Dockerfile` 构建；`ecs-update.sh` 会 `git pull`、`pull` 镜像、`compose.prod.yml up`。
+
+首次在 ECS 若无脚本，等价于：
+
+```bash
+docker compose -f compose.prod.yml pull
+docker compose -f compose.prod.yml --profile https up -d
+```
+
+---
+
+### 共通
+
+- **HTTPS**：`.env` 里 `DOMAIN=你的域名`，`--profile https` 起 Caddy（80/443 → daydesk:8000）
+- **备份**：复制 `data/daydesk.db`
+- **构建镜像源**：`Dockerfile` 使用 DaoCloud Python 基础镜像 + 阿里云 pip，国内友好
 
 配色、左上角的标题和备注在设置里改，会记在数据库里。天数和名额要改的话，编辑 `profile/default.json` 后重启。
 

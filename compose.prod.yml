@@ -1,0 +1,48 @@
+# ECS 上只拉镜像、不在服务器 build（配合 scripts/push-image.sh）
+# 用法：docker compose -f compose.prod.yml --profile https up -d
+services:
+  daydesk:
+    image: ${DAYDESK_IMAGE:?在 .env 填写 DAYDESK_IMAGE，例如 registry.cn-hangzhou.aliyuncs.com/<命名空间>/daydesk:latest}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      DAYDESK_DB: /data/daydesk.db
+      DAYDESK_TOKEN: ${DAYDESK_TOKEN:-}
+      DAYDESK_PROFILE: /srv/profile/default.json
+    volumes:
+      - ./data:/data
+      - ./profile:/srv/profile:ro
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    profiles: ["https"]
+    environment:
+      DOMAIN: ${DOMAIN:-desk.example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - daydesk
+
+volumes:
+  caddy_data:
+  caddy_config:

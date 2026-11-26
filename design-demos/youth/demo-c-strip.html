@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>方向 C · 紧凑时间条</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap');
+    :root {
+      --bg: #ecfdf5;
+      --surface: #fff;
+      --ink: #134e4a;
+      --muted: #5f7a74;
+      --line: #a7f3d0;
+      --accent: #059669;
+      --sans: "Inter", "PingFang SC", sans-serif;
+      --mono: "DM Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg); font-size: 15px; }
+    .tag { position: fixed; top: 12px; right: 12px; font-size: 12px; padding: 6px 10px; background: var(--accent); color: #fff; border-radius: 8px; }
+    .phone { max-width: 390px; margin: 0 auto; min-height: 100dvh; background: var(--surface); box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; }
+    .sticky {
+      position: sticky; top: 0; z-index: 2; padding: 14px 16px 12px;
+      background: color-mix(in oklab, var(--surface) 92%, transparent);
+      backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sticky h1 { margin: 0; font-size: 1.25rem; font-weight: 700; flex: 1; }
+    .pill { font-family: var(--mono); font-size: 11px; font-weight: 500; padding: 5px 10px; border-radius: 999px; background: var(--bg); color: var(--accent); border: 1px solid var(--line); }
+    .content { flex: 1; padding: 12px 16px 88px; overflow: auto; }
+    .capture { display: flex; gap: 6px; margin-bottom: 16px; }
+    .capture input { flex: 1; min-height: 42px; border: 1px dashed var(--line); border-radius: 10px; padding: 0 12px; font-size: 14px; background: var(--bg); }
+    .capture button { min-height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; }
+    .timeline { position: relative; padding-left: 22px; margin: 8px 0 20px; }
+    .timeline::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--line); border-radius: 2px; }
+    .tick { position: relative; padding: 10px 12px 10px 16px; margin-bottom: 8px; background: var(--bg); border-radius: 12px; border: 1px solid var(--line); }
+    .tick::before {
+      content: ""; position: absolute; left: -19px; top: 16px; width: 10px; height: 10px;
+      border-radius: 50%; background: var(--surface); border: 2px solid var(--accent);
+    }
+    .tick.late::before { border-color: #e11d48; }
+    .tick strong { display: block; font-size: 15px; }
+    .tick span { font-size: 12px; color: var(--muted); }
+    .tick-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .tick-actions button { font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 600; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; }
+    .mini-card { padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+    .mini-card h3 { margin: 0 0 6px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .mini-card p { margin: 0; }
+    .review { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
+    .step i { font-family: var(--mono); font-style: normal; font-size: 12px; width: 24px; height: 24px; border-radius: 8px; background: var(--bg); display: grid; place-items: center; color: var(--accent); font-weight: 700; flex: none; border: 1px solid var(--line); }
+    .bottom-nav {
+      position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--surface);
+      font-size: 10px; font-weight: 600; color: var(--muted); text-align: center;
+    }
+    .bottom-nav span { display: block; padding: 6px 2px; border-radius: 8px; }
+    .bottom-nav .on { color: var(--accent); background: var(--bg); }
+  </style>
+</head>
+<body>
+  <p class="tag">C · 紧凑时间条</p>
+  <article class="phone">
+    <header class="sticky">
+      <h1>今天</h1>
+      <span class="pill">11·26 周三</span>
+    </header>
+    <div class="content">
+      <form class="capture" onsubmit="return false">
+        <input type="text" placeholder="灵感…" aria-label="灵感">
+        <button type="submit">收下</button>
+      </form>
+      <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:var(--muted)">三件</p>
+      <div class="timeline">
+        <article class="tick late">
+          <strong>周报发给项目组</strong>
+          <span>逾期 · MVP</span>
+          <div class="tick-actions">
+            <button type="button">完成</button>
+            <button type="button">明天</button>
+          </div>
+        </article>
+        <article class="tick">
+          <strong>整理会议材料</strong>
+          <span>16:00</span>
+          <div class="tick-actions"><button type="button">完成</button></div>
+        </article>
+        <article class="tick">
+          <strong>回复预算邮件</strong>
+          <span>等待 4 天</span>
+        </article>
+      </div>
+      <div class="grid2">
+        <div class="mini-card"><h3>时间</h3><p>09:30 站会<br>16:00 材料</p></div>
+        <div class="mini-card"><h3>本周</h3><p>MVP 2/5<br>模板 0/3</p></div>
+      </div>
+      <section class="review" aria-label="日复盘 preview">
+        <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:var(--muted)">复盘 Preview</p>
+        <div class="step"><i>1</i><div><strong style="font-size:14px">今天完成的</strong><p style="margin:4px 0 0;font-size:13px;color:var(--muted)">自动从勾选来</p></div></div>
+        <div class="step"><i>2</i><div><strong style="font-size:14px">没做完怎么办</strong></div></div>
+      </section>
+    </div>
+    <footer class="bottom-nav" aria-hidden="true">
+      <span class="on">今天</span><span>待办</span><span>灵感</span><span>日程</span><span>复盘</span>
+    </footer>
+  </article>
+</body>
+</html>
