@@ -42,12 +42,12 @@
 - **配色**：墨蓝 token，accent 为低饱和钴蓝辉光。
 - **form 来自内容**：暗底让「现在就做这三件」像夜间的唯一光源。
 
-## 交付文件
+## 交付文件（HTML 原型已从仓库移除）
 
-| 方向 | HTML | 说明 |
+| 方向 | 原文件 | 说明 |
 |---|---|---|
-| A 刻印 | `design-demos/direction-a-keyin.html` | 版心 + 旁注 |
-| B 脊线 | `design-demos/direction-b-jixian.html` | 时间脊 + 顶栏三件 |
-| C 静室 | `design-demos/direction-c-jingshi.html` | 墨蓝暗色 + 侧栏 |
+| A 刻印 | `direction-a-keyin.html` | 版心 + 旁注 |
+| B 脊线 | `direction-b-jixian.html` | 时间脊 + 顶栏三件 |
+| C 静室 | `direction-c-jingshi.html` | 墨蓝暗色 + 侧栏 |
 
-**请在本机用浏览器打开上述三个文件对比**（或 `uvicorn` 跑起来后我们对照实装）。选定后写入 `direction-approved.md` 再改 `app/static/app.css`。
+归档与本地恢复方式见 [`docs/design-demos.md`](docs/design-demos.md)。已定稿方向见 `direction-approved.md`。

@@ -1,6 +1,7 @@
 .venv
 data
 draft
+design-demos
 design-system
 .git
 **/__pycache__
